@@ -1,4 +1,10 @@
 import graphene
+from graphene_django.filter import DjangoFilterConnectionField
+from .models import Customer, Product, Order
+from .filters import CustomerFilter, ProductFilter, OrderFilter
+from graphene import relay
+
+
 from graphene_django import DjangoObjectType
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -12,16 +18,23 @@ import re
 class CustomerType(DjangoObjectType):
     class Meta:
         model = Customer
+        interfaces = (relay.Node,)
+        fields = "__all__"
+        filterset_class = CustomerFilter
 
 
 class ProductType(DjangoObjectType):
     class Meta:
         model = Product
+        interfaces = (relay.Node,)
+        fields = "__all__"
 
 
 class OrderType(DjangoObjectType):
     class Meta:
         model = Order
+        interfaces = (relay.Node,)
+        fields = "__all__"
 
 
 # Input Types
@@ -167,6 +180,10 @@ class Query(graphene.ObjectType):
 
     def resolve_hello(root, info):
         return "Hello, GraphQL!"
+
+    all_customers = DjangoFilterConnectionField(CustomerType, filterset_class=CustomerFilter)
+    all_products = DjangoFilterConnectionField(ProductType, filterset_class=ProductFilter)
+    all_orders = DjangoFilterConnectionField(OrderType, filterset_class=OrderFilter)
 
 
 class Mutation(graphene.ObjectType):
